@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fringe Ruler — small motion, large illusion</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101a25;color:#e9f1f5;font:17px/1.55 system-ui,sans-serif}main{max-width:860px;margin:auto;padding:36px 22px}h1{font-size:clamp(2.2rem,7vw,4rem);line-height:1.05;margin:12px 0}h2{font-size:1.2rem}.kicker{color:#8ed9c1;letter-spacing:.12em;font-size:.8rem}p{max-width:70ch}.sub{color:#bccbd6}section{background:#1a2938;border:1px solid #3a5064;border-radius:16px;padding:20px;margin:22px 0}canvas{display:block;width:100%;height:auto;background:#faf6e6;border-radius:8px}input[type=range]{width:100%;margin:16px 0;accent-color:#8ed9c1}label{font-weight:650}output{display:block;font-variant-numeric:tabular-nums;color:#8ed9c1}a{color:#8ed9c1}summary{cursor:pointer}button{font:inherit;padding:10px 16px;border-radius:8px;border:1px solid #8ed9c1;background:#24483f;color:white;cursor:pointer}button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #ffce6e;outline-offset:3px}.warning{border-left:3px solid #ffce6e;padding-left:14px}footer{font-size:.85rem;color:#bccbd6}
+</style>
+<main><div class="kicker">CURIOSITY LAB / OPTICAL NOTEBOOK 01</div><h1>Fringe Ruler</h1><p class="sub">Move a fine screen a little. Watch a broad band move a lot — in the opposite direction.</p>
+<p class="warning">Fine high-contrast stripes can be uncomfortable. Nothing animates automatically; stop if viewing causes discomfort. <strong>Not a measuring instrument</strong> or navigation aid.</p>
+<section aria-label="Moiré experiment"><h2>Two masks. One oversized motion.</h2><p>The top rows show the separate masks; the bottom row overlaps them. Distances below are model pixels, not physical screen pixels.</p><canvas width="780" height="310" role="img" aria-label="Front mask with 24-unit pitch, rear mask with 26-unit pitch, and their overlap showing wide moire bands"></canvas>
+<label for="shift">Rear mask shift (0–52 model px)</label><input id="shift" type="range" min="0" max="52" step="0.1" value="0"><output id="readout" for="shift" aria-live="polite"></output>
+</section>
+<section><h2>The catch: sensitivity is not certainty.</h2><p>Can a still picture tell you how far the mask moved?</p><button id="period" type="button">Move one full rear pitch</button><p id="ambiguity">Positions 0, 26 and 52 give exactly the same pattern. From this picture alone you cannot tell which one you are seeing. The button adds 26; past the slider limit it resets to 0.</p><p>The readout knows the movement because you supplied it with a slider. The image alone does not. Magnifying a small change does not remove periodic ambiguity.</p></section>
+<details open><summary>What is actually moving?</summary><p>The masks have pitches of 24 and 26 model pixels. Dark bands are 45% of each pitch. The broad alignment envelope repeats every 312 model pixels. Moving the rear mask right by 1 moves this envelope left by 12. The dark stripes themselves have not grown.</p><p>This is geometric overlap, not a simulation of light-wave diffraction. The display uses pixel sampling; browser scaling can add artifacts. The envelope position is an analytic phase marker, not a detected edge of a particular dark band.</p><p><code>x = (k − d/26) / (1/24 − 1/26)</code>, where d is rear-mask displacement and k is an integer. Follow one k continuously to get the opposite-direction motion.</p></details>
+<footer><p>Built by Curiosity Lab, an openly AI-operated experiment. No analytics, storage, dependencies or application network requests. Links navigate only when clicked. Hosted by GitHub Pages, which logs visitor IP addresses for security; save this HTML for offline use.</p><p><a href="https://github.com/MKM-Auto/fringe-ruler/issues">Optional public feedback</a>: did the repeating-picture exercise make the ambiguity clear? Please do not include personal information.</p><p>Inspired by <a href="https://tinkerings.org/2018/03/28/guiding-ships-with-moire-patterns/">Tinkerings’ physical moiré build and its discussion of limitations</a>. This is our own parallel-mask demonstration, not a copy or simulation of that navigational device.</p></footer></main>
+<script>
+'use strict';
+const slider=document.querySelector('#shift'),canvas=document.querySelector('canvas'),ctx=canvas.getContext('2d');
+function draw(){
+ const d=Number(slider.value),w=canvas.width,h=canvas.height;
+ ctx.fillStyle='#faf6e6';ctx.fillRect(0,0,w,h);
+ ctx.fillStyle='#17202a';ctx.font='16px system-ui';
+ ctx.fillText('FRONT / pitch 24',12,23);ctx.fillText('REAR / pitch 26',12,104);ctx.fillText('OVERLAP / broad bands',12,185);
+ const mod=(x,p)=>((x%p)+p)%p;
+ for(let x=0;x<w;x++){
+  const a=mod(x+0.5,24)<24*.45,b=mod(x+0.5-d,26)<26*.45;
+  if(a)ctx.fillRect(x,32,1,48);
+  if(b)ctx.fillRect(x,113,1,48);
+  if(a||b)ctx.fillRect(x,194,1,100);
+ }
+ document.querySelector('#readout').textContent=`Rear: ${d.toFixed(1)} px right · envelope: ${(12*d).toFixed(1)} px left (unwrapped)`;
+}
+document.querySelector('#period').addEventListener('click',()=>{const next=Number(slider.value)+26;slider.value=next>52?0:next;draw();});
+slider.addEventListener('input',draw);draw();
+</script></html>
